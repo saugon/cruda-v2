@@ -10,7 +10,9 @@
   "use strict";
 
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  var hasGsap = typeof window.gsap !== "undefined" && typeof window.ScrollTrigger !== "undefined";
+  var hasGsap = typeof window.gsap !== "undefined"
+    && typeof window.ScrollTrigger !== "undefined"
+    && typeof window.ScrollToPlugin !== "undefined";
 
   /* ---------- Nav: fondo al hacer scroll (sin listener manual) ---------- */
   var nav = document.getElementById("nav");
@@ -29,10 +31,31 @@
     return;
   }
 
-  gsap.registerPlugin(ScrollTrigger);
+  gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
   document.documentElement.classList.add("enhanced");
 
   var EASE = "power3.out";
+
+  /* ---------- 0. Anclas suaves (evita la "vibración" del scroll nativo
+     al entrar en secciones pineadas) ---------- */
+  gsap.utils.toArray('a[href^="#"]').forEach(function (link) {
+    link.addEventListener("click", function (e) {
+      var id = link.getAttribute("href");
+      if (id.length < 2) return;
+      var target = document.querySelector(id);
+      if (!target) return;
+      e.preventDefault();
+      var pin = ScrollTrigger.getAll().filter(function (t) {
+        return t.pin && (t.trigger === target || t.trigger.contains(target));
+      })[0];
+      var y = pin ? pin.start : target.getBoundingClientRect().top + window.scrollY;
+      gsap.to(window, {
+        duration: 1.1,
+        ease: "power2.inOut",
+        scrollTo: { y: y, autoKill: true }
+      });
+    });
+  });
 
   /* ---------- 1. Hero: intro se va, imagen crece a full-bleed ---------- */
   var heroTl = gsap.timeline({
