@@ -48,10 +48,12 @@
       var pin = ScrollTrigger.getAll().filter(function (t) {
         return t.pin && (t.trigger === target || t.trigger.contains(target));
       })[0];
-      var y = pin ? pin.start : target.getBoundingClientRect().top + window.scrollY;
+      /* +2px: aterriza ya dentro del pin, para que no "agarre" justo al frenar */
+      var y = pin ? pin.start + 2 : target.getBoundingClientRect().top + window.scrollY;
       gsap.to(window, {
-        duration: 1.1,
-        ease: "power2.inOut",
+        duration: 1.25,
+        ease: "expo.out",
+        overwrite: "auto",
         scrollTo: { y: y, autoKill: true }
       });
     });
